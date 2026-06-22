@@ -2,7 +2,7 @@
 
 Group 4 Lab Work Presentation
 Presenting a Basic File-Sharing System
-use case : Allows users to upload and download files.
+- use case : Allows users to upload and download files.
 
 ### Steps To Run Project ###
 
