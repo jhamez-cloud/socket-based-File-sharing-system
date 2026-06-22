@@ -1,0 +1,34 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 640px; }
+h1 { font-size: 1.3rem; font-weight: 500; margin-bottom: 1.5rem; }
+
+#drop-zone {
+  border: 1.5px dashed #ccc; border-radius: 10px;
+  padding: 2rem; text-align: center; cursor: pointer;
+  color: #888; transition: border-color .2s, background .2s;
+}
+#drop-zone.over { border-color: #534AB7; background: #EEEDFE; }
+
+#file-list { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 8px; }
+
+.file-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border: 0.5px solid #ddd;
+  border-radius: 8px; font-size: 14px;
+}
+.file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-size { color: #888; font-size: 12px; white-space: nowrap; }
+
+.btn-dl {
+  font-size: 12px; padding: 4px 10px; cursor: pointer;
+  border-radius: 6px; border: 0.5px solid #ccc; background: none;
+}
+.btn-dl:hover { background: #f0f0f0; }
+
+.btn-del {
+  font-size: 12px; padding: 4px 10px; cursor: pointer;
+  border-radius: 6px; border: 0.5px solid #fcc; background: none; color: #c33;
+}
+.btn-del:hover { background: #fff0f0; }
+
+#status { margin-top: 1rem; font-size: 13px; color: #888; min-height: 20px; }
