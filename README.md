@@ -14,8 +14,8 @@ Requirements: Python version 3.1x
 - open terminal in project working directory
 - create python virtual environment (recommended) : python -m venv venv
 - start/actiave environment :
-    on mac/linu : source venv/bin/activate
-    on windows : venv\bin\activate.bat
+    - on mac/linux : source venv/bin/activate
+    - on windows : venv\bin\activate.bat
 - install packages : pip install -r requirements.txt
 
 3.Starting server
