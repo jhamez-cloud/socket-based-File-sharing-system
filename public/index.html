@@ -2,20 +2,154 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>File Share</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FileShare</title>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/fonts/tabler-icons.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>File Share</h1>
 
-  <div id="drop-zone">
-    Drop files here or <strong>click to browse</strong>
-    <input type="file" id="file-input" multiple style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <i class="ti ti-share-2" aria-hidden="true"></i>
+      <span>Group 4 - FileShare</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-filter="all" aria-current="true">
+        <i class="ti ti-layout-grid" aria-hidden="true"></i>
+        <span>All files</span>
+        <span class="nav-badge" id="badge-all">0</span>
+      </button>
+      <button class="nav-item" data-filter="images">
+        <i class="ti ti-photo" aria-hidden="true"></i>
+        <span>Images</span>
+        <span class="nav-badge" id="badge-images">0</span>
+      </button>
+      <button class="nav-item" data-filter="documents">
+        <i class="ti ti-file-text" aria-hidden="true"></i>
+        <span>Documents</span>
+        <span class="nav-badge" id="badge-documents">0</span>
+      </button>
+      <button class="nav-item" data-filter="videos">
+        <i class="ti ti-video" aria-hidden="true"></i>
+        <span>Videos</span>
+        <span class="nav-badge" id="badge-videos">0</span>
+      </button>
+      <button class="nav-item" data-filter="other">
+        <i class="ti ti-files" aria-hidden="true"></i>
+        <span>Other</span>
+        <span class="nav-badge" id="badge-other">0</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div id="storage-info">
+        <span class="storage-label">Storage used</span>
+        <div class="storage-bar"><div class="storage-fill" id="storage-fill"></div></div>
+        <span class="storage-value" id="storage-value">0 B</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="mobile-topbar">
+    <div class="sidebar-brand">
+      <i class="ti ti-share-2" aria-hidden="true"></i>
+      <span>FileShare</span>
+    </div>
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+      <i class="ti ti-menu-2" aria-hidden="true"></i>
+    </button>
   </div>
 
-  <div id="status"></div>
-  <div id="file-list"></div>
+  <div class="mobile-drawer" id="mobile-drawer" aria-hidden="true">
+    <div class="mobile-drawer-inner">
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-filter="all">
+          <i class="ti ti-layout-grid" aria-hidden="true"></i>
+          <span>All files</span>
+          <span class="nav-badge" id="mob-badge-all">0</span>
+        </button>
+        <button class="nav-item" data-filter="images">
+          <i class="ti ti-photo" aria-hidden="true"></i>
+          <span>Images</span>
+          <span class="nav-badge" id="mob-badge-images">0</span>
+        </button>
+        <button class="nav-item" data-filter="documents">
+          <i class="ti ti-file-text" aria-hidden="true"></i>
+          <span>Documents</span>
+          <span class="nav-badge" id="mob-badge-documents">0</span>
+        </button>
+        <button class="nav-item" data-filter="videos">
+          <i class="ti ti-video" aria-hidden="true"></i>
+          <span>Videos</span>
+          <span class="nav-badge" id="mob-badge-videos">0</span>
+        </button>
+        <button class="nav-item" data-filter="other">
+          <i class="ti ti-files" aria-hidden="true"></i>
+          <span>Other</span>
+          <span class="nav-badge" id="mob-badge-other">0</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <main class="main">
+    <header class="main-header">
+      <div>
+        <h1 id="section-title">All files</h1>
+        <p class="section-sub" id="section-sub">All your shared files in one place</p>
+      </div>
+      <label class="upload-btn" for="file-input" aria-label="Upload files">
+        <i class="ti ti-upload" aria-hidden="true"></i>
+        <span>Upload</span>
+        <input type="file" id="file-input" multiple>
+      </label>
+    </header>
+
+    <div id="drop-zone" role="region" aria-label="File drop zone">
+      <div class="drop-inner">
+        <div class="drop-icon-wrap">
+          <i class="ti ti-cloud-upload" aria-hidden="true"></i>
+        </div>
+        <p class="drop-title">Drop files here to upload</p>
+        <p class="drop-sub">or <strong>click Upload</strong> above — any file type supported</p>
+      </div>
+    </div>
+
+    <div id="status" role="status" aria-live="polite"></div>
+
+    <section class="file-section">
+      <div id="file-list" role="list" aria-label="Files"></div>
+    </section>
+  </main>
+
+  <nav class="mobile-tabs" aria-label="File categories">
+    <button class="tab-item active" data-filter="all">
+      <i class="ti ti-layout-grid" aria-hidden="true"></i>
+      <span>All</span>
+    </button>
+    <button class="tab-item" data-filter="images">
+      <i class="ti ti-photo" aria-hidden="true"></i>
+      <span>Images</span>
+    </button>
+    <button class="tab-item" data-filter="documents">
+      <i class="ti ti-file-text" aria-hidden="true"></i>
+      <span>Docs</span>
+    </button>
+    <button class="tab-item" data-filter="videos">
+      <i class="ti ti-video" aria-hidden="true"></i>
+      <span>Videos</span>
+    </button>
+    <button class="tab-item" data-filter="other">
+      <i class="ti ti-files" aria-hidden="true"></i>
+      <span>Other</span>
+    </button>
+  </nav>
 
   <script src="app.js"></script>
 </body>
