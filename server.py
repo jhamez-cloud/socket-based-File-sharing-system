@@ -1,6 +1,4 @@
 import uuid
-import os
-import asyncio
 from pathlib import Path
 
 import aiofiles
@@ -8,6 +6,7 @@ import socketio
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 # ── Setup ──────────────────────────────────────────────────────────
 UPLOAD_DIR = Path("uploads")
@@ -19,6 +18,13 @@ file_registry: dict[str, dict] = {}
 # Socket.IO server (async mode)
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],          # or ["http://localhost:3000"] etc.
+    allow_methods=["*"],          # must include DELETE and OPTIONS
+    allow_headers=["*"],
+)
 
 # Mount static files (the HTML client)
 app.mount("/public", StaticFiles(directory="public"), name="public")
@@ -40,13 +46,13 @@ async def disconnect(sid):
     print(f"Client disconnected: {sid}")
 
 
-# ── REST: list files ───────────────────────────────────────────────
+# ── REST: list files 
 @app.get("/files")
 async def list_files():
     return JSONResponse(list(file_registry.values()))
 
 
-# ── REST: upload ───────────────────────────────────────────────────
+# ── REST: upload
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     file_id = str(uuid.uuid4())

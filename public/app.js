@@ -138,7 +138,7 @@ function render() {
 
 // ── Badges ────────────────────────────────────────────────────
 function updateBadges() {
-  const all       = Object.values(files);
+  const all = Object.values(files);
   const counts = {
     all:       all.length,
     images:    all.filter(f => getFileType(f.name) === "image").length,
