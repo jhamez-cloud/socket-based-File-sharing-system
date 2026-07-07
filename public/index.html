@@ -11,12 +11,40 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/fonts/tabler-icons.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
+  <!-- ── Name entry modal ──────────────────────────────────── -->
+  <div id="name-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <div class="modal-icon">
+        <i class="ti ti-user-circle" aria-hidden="true"></i>
+      </div>
+      <h2 class="modal-title" id="modal-title">Welcome to FileShare</h2>
+      <p class="modal-sub">Enter your name to join the session. It will appear alongside any files you upload.</p>
+      <div class="modal-field">
+        <label for="name-input" class="modal-label">Your name</label>
+        <input
+          type="text"
+          id="name-input"
+          class="modal-input"
+          placeholder="e.g. Kwame Mensah"
+          maxlength="40"
+          autocomplete="off"
+          autofocus
+        >
+        <p class="modal-error" id="name-error" aria-live="polite"></p>
+      </div>
+      <button class="modal-submit" id="name-submit">
+        <i class="ti ti-arrow-right" aria-hidden="true"></i>
+        Join session
+      </button>
+    </div>
+  </div>
+
 <body>
 
   <aside class="sidebar">
     <div class="sidebar-brand">
       <i class="ti ti-share-2" aria-hidden="true"></i>
-      <span>Group 4 - FileShare</span>
+      <span>FileShare</span>
     </div>
 
     <nav class="sidebar-nav">
@@ -46,6 +74,12 @@
         <span class="nav-badge" id="badge-other">0</span>
       </button>
     </nav>
+
+    <!-- Connected users list -->
+    <div class="sidebar-users" id="sidebar-users">
+      <span class="storage-label">Online now</span>
+      <ul class="user-list" id="user-list" aria-label="Connected users"></ul>
+    </div>
 
     <div class="sidebar-footer">
       <div id="storage-info">
@@ -95,6 +129,12 @@
           <span class="nav-badge" id="mob-badge-other">0</span>
         </button>
       </nav>
+
+      <!-- Connected users list (mobile drawer) -->
+      <div class="sidebar-users" style="margin-top: 16px;">
+        <span class="storage-label">Online now</span>
+        <ul class="user-list" id="mob-user-list" aria-label="Connected users"></ul>
+      </div>
     </div>
   </div>
 
