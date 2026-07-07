@@ -4,8 +4,10 @@ const fileInput  = document.getElementById("file-input");
 const fileList   = document.getElementById("file-list");
 const statusEl   = document.getElementById("status");
 
-let files = {};
+let files        = {};
 let activeFilter = "all";
+let currentUser  = null;      // name entered in the modal
+let connectedUsers = [];      // live list pushed by the server
 
 // ── File type classification ──────────────────────────────────
 const IMAGE_EXT    = ["jpg","jpeg","png","gif","webp","svg","bmp","ico","tiff","avif"];
@@ -33,6 +35,12 @@ function getFileExt(name) {
 }
 
 // ── Socket events ─────────────────────────────────────────────
+socket.on("connect", () => {
+  if (currentUser) {
+    socket.emit("user_connected", { name: currentUser });
+  }
+});
+
 socket.on("file_list", (list) => {
   files = {};
   list.forEach(f => files[f.id] = f);
@@ -58,11 +66,20 @@ socket.on("file_deleted", ({ id }) => {
   if (name) setStatus(`"${name}" removed`);
 });
 
+// Server sends the current user list whenever someone joins or leaves.
+// Payload: array of name strings, e.g. ["Kwame", "Ama", "Kofi"]
+socket.on("user_list", (names) => {
+  connectedUsers = names;
+  renderUsers();
+});
+
 // ── Upload ────────────────────────────────────────────────────
 async function uploadFiles(fileArr) {
   for (const file of fileArr) {
     const form = new FormData();
     form.append("file", file);
+    // Send the uploader's name so the server can store it with the file record
+    if (currentUser) form.append("uploader", currentUser);
     setStatus(`Uploading "${file.name}"…`);
     try {
       const res = await fetch("http://localhost:8000/upload", { method: "POST", body: form });
@@ -108,6 +125,10 @@ function render() {
     const row  = document.createElement("div");
     row.className = "file-row";
     row.setAttribute("role", "listitem");
+    const uploaderHtml = f.uploader
+      ? `<span class="file-uploader"><i class="ti ti-user" aria-hidden="true"></i>${escHtml(f.uploader)}</span>`
+      : "";
+
     row.innerHTML = `
       <div class="file-icon-wrap type-${type}" aria-hidden="true">
         <i class="ti ${icon}"></i>
@@ -118,6 +139,7 @@ function render() {
           <span class="file-size">${fmtSize(f.size)}</span>
           <span class="file-type-tag">${ext}</span>
         </div>
+        <span>uploader: ${uploaderHtml}</span>
       </div>
       <div class="file-actions">
         <a href="http://localhost:8000/download/${f.id}" download="${escHtml(f.name)}" tabindex="-1">
@@ -138,7 +160,7 @@ function render() {
 
 // ── Badges ────────────────────────────────────────────────────
 function updateBadges() {
-  const all = Object.values(files);
+  const all       = Object.values(files);
   const counts = {
     all:       all.length,
     images:    all.filter(f => getFileType(f.name) === "image").length,
@@ -164,6 +186,104 @@ function updateStorage() {
   if (fillEl) fillEl.style.width = pct + "%";
   if (valEl)  valEl.textContent  = fmtSize(total) + " used";
 }
+
+// ── Connected users ───────────────────────────────────────────
+function renderUsers() {
+  const lists = [
+    document.getElementById("user-list"),
+    document.getElementById("mob-user-list"),
+  ];
+
+  const html = connectedUsers.map(name => {
+    const initials = name.trim().split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+    const isYou    = name === currentUser;
+    return `
+      <li class="user-item">
+        <div class="user-avatar" aria-hidden="true">${escHtml(initials)}</div>
+        <span class="user-name">${escHtml(name)}</span>
+        ${isYou ? '<span class="user-you-badge">you</span>' : ""}
+        <span class="online-dot" title="Online" aria-hidden="true"></span>
+      </li>`;
+  }).join("");
+
+  lists.forEach(el => { if (el) el.innerHTML = html || '<li style="padding:6px 6px;font-size:13px;color:var(--text-muted)">No one else yet</li>'; });
+}
+
+// ── Name modal ────────────────────────────────────────────────
+(function initNameModal() {
+  const overlay   = document.getElementById("name-modal");
+  const input     = document.getElementById("name-input");
+  const submitBtn = document.getElementById("name-submit");
+  const errorEl   = document.getElementById("name-error");
+  const savedName = sessionStorage.getItem("file-sharing-display-name")?.trim();
+
+  function enableApp() {
+    document.getElementById("drop-zone").style.pointerEvents = "";
+    document.getElementById("file-input").disabled = false;
+  }
+
+  function disableApp() {
+    document.getElementById("drop-zone").style.pointerEvents = "none";
+    document.getElementById("file-input").disabled = true;
+  }
+
+  function showError(msg) {
+    errorEl.textContent = msg;
+    input.classList.add("error");
+  }
+
+  function clearError() {
+    errorEl.textContent = "";
+    input.classList.remove("error");
+  }
+
+  function submit() {
+    const name = input.value.trim();
+    const accepted_characters = /^[a-zA-Z0-9 -]+$/;
+
+    if (!accepted_characters.test(name)) {
+      showError("Name can only contain letters, numbers, spaces, underscores, and hyphens.");
+      input.focus();
+      return;
+    }
+    if (!name) {
+      showError("Please enter your name to continue.");
+      input.focus();
+      return;
+    }
+    if (name.length < 2) {
+      showError("Name must be at least 2 characters.");
+      input.focus();
+      return;
+    }
+
+    // Store name globally and emit the connection event
+    currentUser = name;
+    sessionStorage.setItem("file-sharing-display-name", name);
+    socket.emit("user_connected", { name });
+
+    // Re-enable the app
+    enableApp();
+
+    // Dismiss the modal
+    overlay.classList.add("hidden");
+  }
+
+  if (savedName) {
+    currentUser = savedName;
+    enableApp();
+    overlay.classList.add("hidden");
+    socket.emit("user_connected", { name: savedName });
+    return;
+  }
+
+  disableApp();
+  overlay.classList.remove("hidden");
+
+  submitBtn.addEventListener("click", submit);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+  input.addEventListener("input",   clearError);
+})();
 
 // ── Filter nav ────────────────────────────────────────────────
 const SECTION_LABELS = {
